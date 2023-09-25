@@ -5,7 +5,7 @@ import requests
 from prompts import calculator
 from prompts import *
 
-api_url = 'http://192.168.0.157:8080'
+api_url = 'http://192.168.101.100:8080'
 
 def post(prompt, temperature=0.6, top_k=1000, top_p=0.9, n_keep=0, n_predict=1024, stop=["[INST]"], stream=False):
     headers = {'Content-Type': 'application/json'}
@@ -33,13 +33,24 @@ def json_filter(content)-> str:
     try:
         return json.loads(content[l:r+1])
     except json.decoder.JSONDecodeError:
+        print("JSONDecodeError...")
         return None
 
 def demo01(prompts):
     prompt_template = prompt(calculator.SYSTEM_MESSAGE)
-    for p in prompts:
+    p = prompts.pop()
+    while True:
+        if len(prompts) == 0:
+            break
         resp = post(prompt_template.format(input=p))
-        print(json_filter(resp['content']))
+        res = json_filter(resp['content'])
+        if res is None:
+            time.sleep(1)
+            continue
+        else:
+            print(res)
+            p = prompts.pop()
+
         time.sleep(1)
 
 
@@ -48,7 +59,6 @@ if __name__ == '__main__':
         "Write a poem about love",
         "what's 1+1=2 ?",
         "What about black hole?",
-        "Do you know my name?",
         "How about landing the Mars?",
         "how are you today?",
     ]
